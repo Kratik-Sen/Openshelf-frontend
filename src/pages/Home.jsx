@@ -6,14 +6,35 @@ import "./Home.css";
 
 function Home() {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const marqueeRef = useRef(null);
 
   useEffect(() => {
-    axios.get("https://vercel-backend-production-598f.up.railway.app/get-files").then((res) => {
-      setBooks(res.data.data);
-    });
-  }, []);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    axios
+      .get("http://localhost:5000/get-files", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setBooks(res.data.data); //http://localhost:3000
+        setFilteredBooks(res.data.data);
+      })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        } else {
+          console.error("Failed to fetch books", err.response?.data || err.message);
+        }
+      });
+  }, [navigate]);
 
   const handleMouseEnter = () => {
     marqueeRef.current?.stop();
@@ -21,6 +42,21 @@ function Home() {
 
   const handleMouseLeave = () => {
     marqueeRef.current?.start();
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    if (query === "") {
+      setFilteredBooks(books);
+    } else {
+      const filtered = books.filter(
+        (book) =>
+          book.title?.toLowerCase().includes(query) ||
+          book.category?.toLowerCase().includes(query)
+      );
+      setFilteredBooks(filtered);
+    }
   };
 
   const categories = [
@@ -36,10 +72,8 @@ function Home() {
 
   return (
     <>
-    
-
       {/* Main content starts here */}
-      <div className="home">
+      <div className="home" style={{ backgroundColor: "black", color: "white", minHeight: "100vh" }}>
         <Nav />
         <marquee
           className="topmarquee"
@@ -47,33 +81,78 @@ function Home() {
           height="70px"
           scrollamount="30"
         >
-          ﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـRead and Download books for freeﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـ
+          ﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـRead , Download and Upload books ﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـ
         </marquee>
-  {/* Top horizontal category buttons (always visible) */}
-    <div className="btnBOX">  <div className="top-category-bar">
-  <span>Category:</span>
-        {categories.map((cat) => (
-          <button key={cat} onClick={() => navigate(`/category/${cat}`)}>
-            {cat}
-          </button>
-        ))}
-      </div></div>
+        {/* Search Bar */}
+        <div className="search-container">
+          <div className="search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search books by title or category..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="search-input"
+            />
+            {searchQuery && (
+              <button
+                className="clear-search"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilteredBooks(books);
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Top horizontal category buttons (always visible) */}
+        <div className="btnBOX">
+          {" "}
+          <div className="top-category-bar">
+            <span>Category:</span>
+            {categories.map((cat) => (
+              <button key={cat} onClick={() => navigate(`/category/${cat}`)}>
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="home-container">
           {/* Book grid start */}
           <div className="book-grid">
-            {books.map((book) => (
-              <div
-                className="book-card"
-                key={book._id}
-                onClick={() => navigate(`/view/${book._id}`)}
-              >
-                <img src={book.coverImage} alt={book.title} width={200} />
-                <h5>{book.title}</h5>
-                <p style={{ color: "#dbae32", fontSize: "14px" }}>
-                  {book.category}
-                </p>
+            {filteredBooks.length === 0 ? (
+              <div className="no-results">
+                <p>No books found matching "{searchQuery}"</p>
               </div>
-            ))}
+            ) : (
+              filteredBooks.map((book) => (
+                <div
+                  className="book-card"
+                  key={book._id}
+                  onClick={() => navigate(`/view/${book._id}`)}
+                >
+                  <img src={book.coverImage} alt={book.title} width={200} />
+                  <h5>{book.title}</h5>
+                  <p style={{ color: "#dbae32", fontSize: "14px" }}>
+                    {book.category}
+                  </p>
+                  {JSON.parse(localStorage.getItem("user") || "null")?.id ===
+                    book.owner && (
+                    <button
+                      className="manage-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/view/${book._id}`);
+                      }}
+                    >
+                      Manage
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Category Marquee (hidden on small screens) */}
@@ -88,7 +167,10 @@ function Home() {
             >
               <div className="category-buttons">
                 {categories.map((cat) => (
-                  <button key={cat} onClick={() => navigate(`/category/${cat}`)}>
+                  <button
+                    key={cat}
+                    onClick={() => navigate(`/category/${cat}`)}
+                  >
                     {cat}
                   </button>
                 ))}

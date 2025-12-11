@@ -22,9 +22,13 @@ function AdminPage() {
     formData.append("category", category);
 
     try {
-      const res = await axios.post("https://vercel-backend-production-598f.up.railway.app/upload-files", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "http://localhost:5000/upload-files",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
       if (res.data.status === "ok") {
         alert("Uploaded!");
@@ -34,22 +38,29 @@ function AdminPage() {
         setCategory("");
       }
     } catch (error) {
-      console.error("Upload failed:", error.response?.data || error.message);
-      alert("Upload failed");
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        console.error("Upload failed:", error.response?.data || error.message);
+        alert("Upload failed");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="admin-container">
-      <div className="back-home" onClick={() => navigate("/")}>
+    <div className="admin-container" style={{ backgroundColor: "black", color: "white", minHeight: "100vh" }}>
+      <div className="back-home" onClick={() => navigate("/")}> 
         ← Back to Home
       </div>
 
       <h2>Admin PDF Upload</h2>
 
       <form onSubmit={handleSubmit}>
+        <p>Name of book</p>
         <input
           type="text"
           placeholder="Book Title"
@@ -58,6 +69,7 @@ function AdminPage() {
           required
         />
 
+        <p>PDF of book</p>
         <input
           type="file"
           accept="application/pdf"
@@ -65,6 +77,7 @@ function AdminPage() {
           required
         />
 
+        <p>Image of book</p>
         <input
           type="file"
           accept="image/*"
@@ -72,18 +85,25 @@ function AdminPage() {
           required
         />
 
+        <p>Category of book</p>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
         >
-          <option value="" hidden>Select Category</option>
+          <option value="" hidden>
+            Select Category
+          </option>
           <option value="Academic & Educational">Academic & Educational</option>
           <option value="Fiction">Fiction</option>
           <option value="Non-Fiction">Non-Fiction</option>
-          <option value="Comics & Graphic Novels">Comics & Graphic Novels</option>
+          <option value="Comics & Graphic Novels">
+            Comics & Graphic Novels
+          </option>
           <option value="Religious & Spiritual">Religious & Spiritual</option>
-          <option value="Career & Skill Development">Career & Skill Development</option>
+          <option value="Career & Skill Development">
+            Career & Skill Development
+          </option>
           <option value="Self Help">Self Help</option>
           <option value="Others">Others</option>
         </select>
