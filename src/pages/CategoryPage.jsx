@@ -16,7 +16,7 @@ const CategoryPage = () => {
       return;
     }
     axios
-      .get("http://localhost:5000/get-files", {
+      .get("https://openshelf-backend.onrender.com/get-files", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
