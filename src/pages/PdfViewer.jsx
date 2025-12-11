@@ -56,7 +56,7 @@ function PdfViewer() {
       navigate("/login");
       return;
     }
-    fetch(`http://localhost:5000/get-files`, {
+    fetch(`https://openshelf-backend.onrender.com/get-files`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -88,7 +88,7 @@ function PdfViewer() {
 
   const checkPaymentStatus = async (bookId, token) => {
     try {
-      const res = await axios.get(`http://localhost:5000/payment/status/${bookId}`, {
+      const res = await axios.get(`https://openshelf-backend.onrender.com/payment/status/${bookId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHasPaid(res.data.hasPaid || isOwner);
@@ -113,7 +113,7 @@ function PdfViewer() {
     try {
       // Create Razorpay order
       const orderRes = await axios.post(
-        "http://localhost:5000/payment/create-order",
+        "https://openshelf-backend.onrender.com/payment/create-order",
         { bookId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -130,7 +130,7 @@ function PdfViewer() {
             try {
               // Verify payment
               const verifyRes = await axios.post(
-                "http://localhost:5000/payment/verify",
+                "https://openshelf-backend.onrender.com/payment/verify",
                 {
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
@@ -181,7 +181,7 @@ function PdfViewer() {
 
   const downloadPdf = () => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/files/${id}/pdf`, {
+    fetch(`https://openshelf-backend.onrender.com/files/${id}/pdf`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.blob())
@@ -212,7 +212,7 @@ function PdfViewer() {
     if (updateCoverImage) formData.append("coverImage", updateCoverImage);
 
     try {
-      const res = await axios.put(`http://localhost:5000/files/${id}`, formData, {
+      const res = await axios.put(`https://openshelf-backend.onrender.com/files/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -310,7 +310,7 @@ function PdfViewer() {
                   onClick={async () => {
                     const token = localStorage.getItem("token");
                     if (window.confirm("Are you sure you want to delete this book?")) {
-                      await fetch(`http://localhost:5000/files/${id}`, {
+                      await fetch(`https://openshelf-backend.onrender.com/files/${id}`, {
                         method: "DELETE",
                         headers: { Authorization: `Bearer ${token}` },
                       });
@@ -368,7 +368,7 @@ function PdfViewer() {
               <Document
                 className="Document"
                 file={{
-                  url: `http://localhost:5000/files/${id}/pdf`,
+                  url: `https://openshelf-backend.onrender.com/files/${id}/pdf`,
                   httpHeaders: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                   },
