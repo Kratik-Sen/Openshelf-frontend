@@ -17,7 +17,7 @@ function MyLibrary() {
     }
     setLoading(true);
     axios
-      .get("http://localhost:5000/purchased-books", {
+      .get("https://openshelf-backend.onrender.com/purchased-books", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
