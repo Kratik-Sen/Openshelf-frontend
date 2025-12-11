@@ -15,7 +15,7 @@ function Signup() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/auth/signup", {
+      const res = await axios.post("https://openshelf-backend.onrender.com/auth/signup", {
         name,
         email,
         password,
